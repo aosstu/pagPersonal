@@ -1,24 +1,38 @@
 ---
-import HeaderLink from './HeaderLink.astro';
+import HeaderLink from "./HeaderLink.astro";
 import "../styles/global.css";
 ---
 
 <header class="bg-black text-white shadow-md">
-  <nav class="container mx-auto flex flex-col items-center py-4">
-    <div class="relative group">
-      <!-- Logo con tamaño controlado -->
-      <img
-        src="/src/assets/aosstude21.png"
-        alt="Logo"
-        class="h-10 w-auto object-contain cursor-pointer transition-transform duration-300 group-hover:scale-105"
-      />
+    <nav class="container mx-auto flex flex-col items-center py-4">
+        <div class="relative group">
+            <!-- Logo con tamaño controlado -->
+            <img
+                src="/src/assets/aosstude21.png"
+                alt="Logo"
+                class="h-10 w-auto object-contain cursor-pointer transition-transform duration-300 group-hover:scale-105"
+            />
 
-      <!-- Dropdown debajo del logo -->
-      <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:flex flex-col items-center text-white bg-black rounded-lg shadow-lg py-2 px-4 min-w-[120px] z-50">
-        <HeaderLink href="/" class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition">Høme</HeaderLink>
-        <HeaderLink href="/blog" class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition">Bløg</HeaderLink>
-        <HeaderLink href="/about" class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition">Abøut</HeaderLink>
-      </div>
-    </div>
-  </nav>
+            <!-- Dropdown debajo del logo -->
+            <div
+                class="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover:flex flex-col items-center text-white bg-black rounded-lg shadow-lg py-2 px-4 min-w-[120px] z-50"
+            >
+                <HeaderLink
+                    href="/"
+                    class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition"
+                    >Høme</HeaderLink
+                >
+                <HeaderLink
+                    href="/blog"
+                    class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition"
+                    >Bløg</HeaderLink
+                >
+                <HeaderLink
+                    href="/about"
+                    class="text-white py-2 px-4 hover:bg-[#786cbb] rounded transition"
+                    >Pørtføliø</HeaderLink
+                >
+            </div>
+        </div>
+    </nav>
 </header>
