@@ -4,6 +4,7 @@
   License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
  */
 @import "tailwindcss";
+@import "tailwindcss/preflight";
 
 :root {
     --accent: #2337ff;
@@ -135,7 +136,9 @@ hr {
         padding: 1em;
     }
 }
-
+.title {
+    background-color: indigo;
+}
 .sr-only {
     border: 0;
     padding: 0;

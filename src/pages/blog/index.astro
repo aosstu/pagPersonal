@@ -7,6 +7,8 @@ import FormattedDate from "../../components/FormattedDate.astro";
 import Header from "../../components/Header.astro";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../../consts";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
+import VantaDots from "../../components/VantaBackground.jsx";
+
 const posts = (await getCollection("blog")).sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
@@ -16,6 +18,9 @@ const posts = (await getCollection("blog")).sort(
 <html lang="en">
     <head>
         <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+        <script src="/js/three.r134.min.js" is:inline></script>
+        <script src="/js/vanta.dots.min.js" is:inline></script>
+
         <style>
             main {
                 width: 960px;
@@ -87,6 +92,8 @@ const posts = (await getCollection("blog")).sort(
         </style>
     </head>
     <body>
+        <VantaDots client:load />
+
         <Header />
         <Breadcrumbs />
         <main>

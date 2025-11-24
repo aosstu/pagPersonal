@@ -31,13 +31,20 @@ items.unshift({ name: "Høme", href: "/" });
 </nav>
 
 <style>
+    nav[aria-label="breadcrumb"] {
+        width: fit-content;
+        margin: 0 auto;
+    }
     .breadcrumb {
         display: flex;
         flex-wrap: wrap;
         justify-content: center; /* centrado horizontal */
         list-style: none;
-        padding: 0;
+        padding: 0.5rem 1rem;
         margin: 1rem 0; /* margen vertical */
+        background-color: white;
+        border-radius: 8px;
+        width: fit-content;
     }
 
     .breadcrumb-item + .breadcrumb-item::before {
