@@ -1,0 +1,58 @@
+---
+const { pathname } = Astro.url;
+
+const segments = pathname.split("/").filter(Boolean);
+
+const items = segments.map((segment, index) => {
+    const href = "/" + segments.slice(0, index + 1).join("/") + "/";
+    const name = segment
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+    return { name, href };
+});
+
+items.unshift({ name: "Home", href: "/" });
+---
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        {
+            items.map((item, index) => (
+                <li class="breadcrumb-item">
+                    {index < items.length - 1 ? (
+                        <a href={item.href}>{item.name}</a>
+                    ) : (
+                        <span>{item.name}</span>
+                    )}
+                </li>
+            ))
+        }
+    </ol>
+</nav>
+
+<style>
+    .breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* centrado horizontal */
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0; /* margen vertical */
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        margin: 0 0.5rem;
+        color: var(--gray);
+    }
+
+    .breadcrumb-item a {
+        text-decoration: none;
+        color: var(--accent);
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb-item a:hover {
+        color: var(--accent-dark);
+    }
+</style>
