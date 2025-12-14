@@ -17,142 +17,158 @@ export default function Modelo3DCard({
     const [isHovering, setIsHovering] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (!mountRef.current) return;
+useEffect(() => {
+  if (!mountRef.current) return;
 
-        // Escena
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a0a);
-        sceneRef.current = scene;
+  /* ================= ESCENA ================= */
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a0a);
+  sceneRef.current = scene;
 
-        // Cámara
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            mountRef.current.clientWidth / mountRef.current.clientHeight,
-            0.1,
-            1000,
-        );
-        camera.position.z = 4;
+  /* ================= CÁMARA ================= */
+  const width = mountRef.current.clientWidth;
+  const height = mountRef.current.clientHeight;
 
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({
-            antialias: false,
-            alpha: true,
+  const camera = new THREE.PerspectiveCamera(
+    40,          // FOV realista (clave)
+    width / height,
+    0.5,
+    50
+  );
+camera.position.set(0, 6, 6);   // altura + distancia iguales ≈ 45°
+camera.lookAt(0, 0, 0);
+  /* ================= RENDERER ================= */
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+  });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.physicallyCorrectLights = true;
+
+  rendererRef.current = renderer;
+  mountRef.current.appendChild(renderer.domElement);
+
+  /* ================= LUCES ================= */
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1);
+  keyLight.position.set(5, 6, 4);
+  keyLight.intensity = 1.2;
+  scene.add(keyLight);
+  
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  fillLight.position.set(-4, 2, 4);
+  fillLight.intensity = 0.35;
+  scene.add(fillLight);
+  
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+  backLight.position.set(0, 4, -5);
+  backLight.intensity = 0.5;
+  scene.add(backLight);
+
+  /* ================= CARGAR MODELO ================= */
+  const loader = new GLTFLoader();
+
+  loader.load(
+    modelPath,
+    (gltf) => {
+      const model = gltf.scene;
+
+      /* ---- Centrar modelo ---- */
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center);
+
+      /* ---- Escalar ---- */
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const scale = 3 / maxDim;
+      model.scale.setScalar(scale);
+
+      /* ---- Ligera inclinación tipo producto ---- */
+model.rotation.x = -0.1;
+      model.rotation.y = 0.15;
+
+      scene.add(model);
+      modelRef.current = model;
+
+      /* ---- Animaciones ---- */
+      if (gltf.animations?.length) {
+        const mixer = new THREE.AnimationMixer(model);
+        mixerRef.current = mixer;
+
+        gltf.animations.forEach((clip) => {
+          mixer.clipAction(clip).play();
         });
-        renderer.setSize(
-            mountRef.current.clientWidth,
-            mountRef.current.clientHeight,
-        );
-        renderer.setPixelRatio(window.devicePixelRatio);
-        rendererRef.current = renderer;
-        mountRef.current.appendChild(renderer.domElement);
+      }
 
-        // Luces
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
+      setIsLoading(false);
+      animate();
+    },
+    undefined,
+    (err) => {
+      console.error("Error cargando modelo:", err);
+      setIsLoading(false);
+    }
+  );
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        directionalLight.position.set(5, 5, 5);
-        scene.add(directionalLight);
+  /* ================= HOVER ================= */
+  const onEnter = () => setIsHovering(true);
+  const onLeave = () => setIsHovering(false);
 
-        // Cargar modelo
-        const loader = new GLTFLoader();
-        loader.load(
-            modelPath,
-            (gltf) => {
-                const model = gltf.scene;
+  containerRef.current.addEventListener("mouseenter", onEnter);
+  containerRef.current.addEventListener("mouseleave", onLeave);
 
-                // Centrar y escalar el modelo
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
+  /* ================= ANIMACIÓN ================= */
+  const clock = new THREE.Clock();
 
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 1.5 / maxDim;
-                model.scale.multiplyScalar(scale);
+  function animate() {
+    animationIdRef.current = requestAnimationFrame(animate);
 
-                scene.add(model);
-                modelRef.current = model;
+    if (modelRef.current && isHovering) {
+      modelRef.current.rotation.y += 0.01;
+    }
 
-                // Configurar animaciones si las hay
-                if (gltf.animations && gltf.animations.length > 0) {
-                    const mixer = new THREE.AnimationMixer(model);
-                    mixerRef.current = mixer;
+    if (mixerRef.current) {
+      mixerRef.current.update(clock.getDelta());
+    }
 
-                    gltf.animations.forEach((clip) => {
-                        const action = mixer.clipAction(clip);
-                        action.clampWhenFinished = true;
-                        action.play();
-                    });
-                }
+    renderer.render(scene, camera);
+  }
 
-                setIsLoading(false);
-                animate();
-            },
-            undefined,
-            (error) => {
-                console.error("Error cargando el modelo:", error);
-                setIsLoading(false);
-            },
-        );
+  /* ================= RESIZE ================= */
+  const handleResize = () => {
+    if (!mountRef.current) return;
 
-        // Eventos de mouse
-        containerRef.current.addEventListener("mouseenter", () => {
-            setIsHovering(true);
-        });
+    const w = mountRef.current.clientWidth;
+    const h = mountRef.current.clientHeight;
 
-        containerRef.current.addEventListener("mouseleave", () => {
-            setIsHovering(false);
-        });
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  };
 
-        // Loop de animación
-        const clock = new THREE.Clock();
-        function animate() {
-            animationIdRef.current = requestAnimationFrame(animate);
+  window.addEventListener("resize", handleResize);
 
-            // Rotación al hover
-            if (modelRef.current) {
-                if (isHovering) {
-                    modelRef.current.rotation.y += 0.03;
-                }
-            }
+  /* ================= CLEANUP ================= */
+  return () => {
+    window.removeEventListener("resize", handleResize);
+    containerRef.current.removeEventListener("mouseenter", onEnter);
+    containerRef.current.removeEventListener("mouseleave", onLeave);
 
-            // Actualizar mixer de animaciones
-            if (mixerRef.current) {
-                mixerRef.current.update(clock.getDelta());
-            }
+    if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
 
-            renderer.render(scene, camera);
-        }
+    if (renderer.domElement.parentNode === mountRef.current) {
+      mountRef.current.removeChild(renderer.domElement);
+    }
 
-        // Responsividad
-        const handleResize = () => {
-            if (mountRef.current) {
-                const width = mountRef.current.clientWidth;
-                const height = mountRef.current.clientHeight;
-                camera.aspect = width / height;
-                camera.updateProjectionMatrix();
-                renderer.setSize(width, height);
-            }
-        };
+    renderer.dispose();
+  };
+}, [modelPath, isHovering]);
 
-        window.addEventListener("resize", handleResize);
-
-        return () => {
-            window.removeEventListener("resize", handleResize);
-            if (animationIdRef.current) {
-                cancelAnimationFrame(animationIdRef.current);
-            }
-            if (
-                mountRef.current &&
-                renderer.domElement.parentNode === mountRef.current
-            ) {
-                mountRef.current.removeChild(renderer.domElement);
-            }
-            renderer.dispose();
-        };
-    }, [modelPath, isHovering]);
 
     return (
         <div
@@ -179,8 +195,8 @@ export default function Modelo3DCard({
                     width: "100%",
                     height: "280px",
                     position: "relative",
-                    background:
-                        "linear-gradient(135deg, #1a1a2e 0%, #0f3a0f 100%)",
+                    backgroundColor:
+                        "#0a0a0a",
                 }}
             >
                 {isLoading && (
